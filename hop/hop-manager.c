@@ -83,7 +83,7 @@ void threads_monitor_hook(void)
 
 	/* hopefully, the check is fine if we set the stack before */
 	if (check_crc(*kstack) && test_bit(ENABLED_BIT, kstack)) {
-		read_pmc(0, dev->counter);
+		read_pmc(1, dev->counter);
 		enable_ibs_op(&dev->ibs);
 	}
 	else {
@@ -482,6 +482,10 @@ static void cleanup_chdevs_resources(void)
 	unregister_chrdev_region(MKDEV(hop_major, 0), HOP_MINORS);
 }// cleanup_chdevs_resources
 
+static void setup_pmcs(void* dummy) {
+	setup_pmc(1, RETIRED_INSTRCUTIONS);
+}// setup_pmcs
+
 static int setup_metadata(void)
 {
 	int err = 0;
@@ -509,6 +513,8 @@ static int setup_metadata(void)
 		dev->ibs.state = 0;		/* disabled */
 		set_ibs_default(dev->ibs.ctl);
 	}
+
+	on_each_cpu(setup_pmcs, NULL, 1);
 out:
 	return err;
 }// setup_metadata

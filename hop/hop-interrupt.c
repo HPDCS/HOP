@@ -41,8 +41,8 @@ static inline int handle_ibs_event(struct pt_regs *regs)
 
 	dev = this_cpu_ptr(pcpu_hop_dev);
 	
-	read_pmc(0, tmp);
-	dev->latency += (dev->counter - tmp);
+	read_pmc(1, tmp);
+	dev->latency += (tmp - dev->counter);
 
 
 	dev->requests++;		/* # of times this handler is invoked on this cpu */
@@ -133,7 +133,7 @@ static inline int handle_ibs_event(struct pt_regs *regs)
 
 //skip:
 	/* re-enable IBS and add randomization to sampling */
-	read_pmc(0, dev->counter);
+	read_pmc(1, dev->counter);
 	set_and_go_ibs_random(&dev->ibs);
 
 	/* NMI has done */

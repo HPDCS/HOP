@@ -40,7 +40,7 @@
 
 // EventSelect
 #define 	CPU_CLOCK_NOT_HALTED				0x76
-#define 	RETIRED_INSTRCUTIONS				0xc0
+#define 	RETIRED_INSTRUCTIONS				0xc0
 #define 	RETIRED_UOPS					0xc1
 
 #endif

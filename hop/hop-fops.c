@@ -154,6 +154,7 @@ static void clear_stats(void)
 		dev->spurious = 0;
 		dev->no_ibs = 0;	
 		dev->denied = 0;
+		dev->latency = 0;
 	}
 }// clear_stats
 

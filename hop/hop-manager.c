@@ -83,8 +83,8 @@ void threads_monitor_hook(void)
 
 	/* hopefully, the check is fine if we set the stack before */
 	if (check_crc(*kstack) && test_bit(ENABLED_BIT, kstack)) {
+		read_pmc(0, dev->counter);
 		enable_ibs_op(&dev->ibs);
-		read_pmc(0, 	dev->counter);
 	}
 	else {
 ibs_off:

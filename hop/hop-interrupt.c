@@ -133,8 +133,8 @@ static inline int handle_ibs_event(struct pt_regs *regs)
 
 //skip:
 	/* re-enable IBS and add randomization to sampling */
-	set_and_go_ibs_random(&dev->ibs);
 	read_pmc(0, dev->counter);
+	set_and_go_ibs_random(&dev->ibs);
 
 	/* NMI has done */
 //	clear_bit(PROCESS_BIT, kstack);

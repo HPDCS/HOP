@@ -504,6 +504,7 @@ static int setup_metadata(void)
 		dev->spurious = 0;
 		dev->no_ibs = 0;
 		dev->denied = 0;
+		dev->latency = 0;
 		dev->ibs.cpu = cpu;
 		dev->ibs.state = 0;		/* disabled */
 		set_ibs_default(dev->ibs.ctl);

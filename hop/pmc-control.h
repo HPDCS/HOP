@@ -55,3 +55,5 @@
 	wrmsrl(PERF_CTR##nb, ctr);	\
 	wrmsrl(PERF_EVT_SEL##nb, sel);	\
 })	
+
+#define NEVERAJOY NULL

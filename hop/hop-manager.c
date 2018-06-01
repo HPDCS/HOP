@@ -15,6 +15,8 @@
 #include "hop-fops.h"
 #include "hop-mod.h"
 
+#include "pmc-control.h"
+
 #define HOP_DEV_MINOR 0
 
 static spinlock_t hash_lock;
@@ -80,12 +82,14 @@ void threads_monitor_hook(void)
 	kstack = (unsigned long*) cur_thread_buf;
 
 	/* hopefully, the check is fine if we set the stack before */
-	if (check_crc(*kstack) && test_bit(ENABLED_BIT, kstack))
+	if (check_crc(*kstack) && test_bit(ENABLED_BIT, kstack)) {
 		enable_ibs_op(&dev->ibs);
-	else
+		read_pmc(0, 	dev->counter);
+	}
+	else {
 ibs_off:
 		disable_ibs_op(&dev->ibs);
-
+	}
 }// threads_monitor_hook
 
 static const struct file_operations hop_fops = {

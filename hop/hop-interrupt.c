@@ -15,6 +15,8 @@
 #include "hop-mod.h"
 #include "hop-irq.h"		// IBS_VECTOR
 
+#include "pmc-control.h"
+
 extern void *pcpu_hop_dev;
 
 #ifdef _IRQ
@@ -33,8 +35,16 @@ static inline int handle_ibs_event(struct pt_regs *regs)
 
 //	unsigned long *kstack;		/* logical view of the last kernel stack entry (64) */
 	u64 midx;			/* used to read MSRs content */
+	unsigned long tmp;
+
+	
 
 	dev = this_cpu_ptr(pcpu_hop_dev);
+	
+	read_pmc(0, tmp);
+	dev->latency += (dev->counter - tmp);
+
+
 	dev->requests++;		/* # of times this handler is invoked on this cpu */
 
 	/* if there is no valid sample, exit */
@@ -124,6 +134,7 @@ static inline int handle_ibs_event(struct pt_regs *regs)
 //skip:
 	/* re-enable IBS and add randomization to sampling */
 	set_and_go_ibs_random(&dev->ibs);
+	read_pmc(0, dev->counter);
 
 	/* NMI has done */
 //	clear_bit(PROCESS_BIT, kstack);

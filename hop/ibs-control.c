@@ -23,8 +23,6 @@
 #include <asm/topology.h>	// cpu_to_node
 
 
-// #include "lend.h"
-
 unsigned ibs_vector = 0xffU;
 
 int ibs_op_supported;

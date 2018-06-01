@@ -19,6 +19,8 @@ struct ctl_stats {
 	unsigned long no_ibs;
 	unsigned long spurious;
 	unsigned long requests;
+	// DEBUG
+	unsigned long latency;
 };
 
 struct tid_stats {

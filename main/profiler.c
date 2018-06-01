@@ -54,9 +54,10 @@ int main(int argc, char **argv)
 			/* if invalid integer the ioctl will fail */
 			err = ioctl(fd, HOP_CTL_STATS, &cstats);
 			if (!err) {
-				printf("%u %lu %lu %lu %lu\n", 
+				printf("%u %lu %lu %lu %lu | %lu\n", 
 					0, cstats.no_ibs, cstats.spurious,
-					cstats.requests, cstats.denied);
+					cstats.requests, cstats.denied,
+					cstats.latency);
 			}
 			break;
                 case 't':

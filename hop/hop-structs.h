@@ -67,6 +67,9 @@ struct hop_dev {
 	volatile unsigned long 	spurious;
 	volatile unsigned long 	no_ibs;	
 	volatile unsigned long 	denied;
+	// DEBUG
+	volatile unsigned long 	counter;
+	volatile unsigned long 	latency;
 	// NMI CHECK
 	volatile unsigned long 	check;
 	volatile unsigned long 	unknown;

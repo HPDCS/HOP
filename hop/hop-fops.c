@@ -167,6 +167,7 @@ static void fill_ctl_stats(struct ctl_stats *stats)
 	stats->spurious = 0;
 	stats->requests = 0;
 	stats->denied = 0;
+	stats->latency = 0;
 	
 	for_each_possible_cpu(cpu) {
 		dev = per_cpu_ptr(pcpu_hop_dev, cpu);
@@ -174,7 +175,9 @@ static void fill_ctl_stats(struct ctl_stats *stats)
 		stats->spurious += dev->spurious;
 		stats->requests += dev->requests;
 		stats->denied += dev->denied;
-		pr_info("HOP STATS: no_ibs %lu, spurious %lu, requests %lu, denied %lu", dev->no_ibs, dev->spurious, dev->requests, dev->denied);
+		stats->latency += dev->latency;
+		pr_info("HOP STATS: no_ibs %lu, spurious %lu, requests %lu, denied %lu, latency%lu", 
+			dev->no_ibs, dev->spurious, dev->requests, dev->denied, dev->latency);
 	}
 
 }// fill_ctl_stats

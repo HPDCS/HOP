@@ -1,5 +1,5 @@
 obj-m := hop.o
-hop-objs := lend.o ld.o ibs-control.o hop-manager.o hop-fops.o hop-interrupt.o hop-mod.o
+hop-objs := ibs-control.o hop-manager.o hop-fops.o hop-interrupt.o hop-mod.o
 
 ifeq ($(type), irq)
 ccflags-y := -D_IRQ

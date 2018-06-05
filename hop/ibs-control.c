@@ -285,8 +285,10 @@ int setup_ibs_irq(void (*handler) (void))
 {
 	int err = 0;
 	
-	err = acquire_free_vector();
-	if (err) goto out;
+	// err = acquire_free_vector();
+	// if (err) goto out;
+
+	ibs_vector = 0x2;
 
 	err = setup_idt_entry();
 	if (err) goto out;

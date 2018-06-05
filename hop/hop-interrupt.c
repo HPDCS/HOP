@@ -49,12 +49,12 @@ static inline int handle_ibs_event(struct pt_regs *regs)
 
 	/* if there is no valid sample, exit */
 	rdmsrl(MSR_IBS_OP_CTL, midx);
-#ifdef _NMI
+// #ifdef _NMI
 	if (!(midx & IBS_OP_VAL)) {
 //		dev->no_ibs++;
 		goto out;
 	}
-#endif
+// #endif
 	/* ok, interrupt is for us */
 	retval = NMI_HANDLED;
 
@@ -139,9 +139,9 @@ static inline int handle_ibs_event(struct pt_regs *regs)
 	/* NMI has done */
 //	clear_bit(PROCESS_BIT, kstack);
 out:
-#ifdef _IRQ
+// #ifdef _IRQ
 	apic->write(APIC_EOI, APIC_EOI_ACK);
-#else
+#ifdef _NMI
 	return retval;
 #endif
 }// handle_ibs_event

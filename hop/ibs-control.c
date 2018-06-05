@@ -365,6 +365,18 @@ int setup_ibs_nmi(int (*handler) (unsigned int, struct pt_regs*))
 	int err = 0;
 	static struct nmiaction handler_na;
 
+	/* look at the gate_desc 0x2 */
+	struct desc_ptr idtr;
+	gate_desc *desc;
+
+	/* read the idtr register */
+	store_idt(&idtr);
+	desc = (gate_desc*) idtr.address;
+	desc += 2;
+
+	pr_info("NMI handler at: %llx", ((unsigned long long)(desc->offset_high) << 32) | 
+		(desc->offset_middle << 16) | desc->offset_low);
+
 	on_each_cpu(setup_ibs_lvt, &err, 1);
 	if (err) goto out;
 

@@ -348,12 +348,12 @@ static void restore_idt(void)
 void cleanup_ibs_irq(void)
 {
 	int err = 0;
-	on_each_cpu(mask_ibs_lvt, &err, 1);
+	// on_each_cpu(mask_ibs_lvt, &err, 1);
 	if (err)
 		pr_err("Error while masking the LVT, trying to restore the IDT\n");
-	restore_idt();
+	// restore_idt();
 	/* release the ibs vector */
-	clear_bit(ibs_vector, used_vectors);	
+	// clear_bit(ibs_vector, used_vectors);	
 	
 	pr_info("IRQ cleaned\n");
 }

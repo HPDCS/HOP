@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 				printf("%u %lu %lu %lu %lu | %lu\n", 
 					0, cstats.no_ibs, cstats.spurious,
 					cstats.requests, cstats.denied,
-					cstats.latency);
+					(cstats.latency / cstats.requests));
 			}
 			break;
                 case 't':

@@ -483,7 +483,7 @@ static void cleanup_chdevs_resources(void)
 }// cleanup_chdevs_resources
 
 static void setup_pmcs(void* dummy) {
-	setup_pmc(1, PMC_CFG_BASE | RETIRED_INSTRUCTIONS);
+	setup_pmc(1, PMC_CFG_BASE | RETIRED_UOPS);
 }// setup_pmcs
 
 static int setup_metadata(void)

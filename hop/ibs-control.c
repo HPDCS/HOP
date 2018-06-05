@@ -186,7 +186,6 @@ no_offset:
 	*(int*)err = -1;
 } // setup_ibs_lvt
 
-#ifdef _IRQ
 extern void ibs_entry(void);
 asm("    .globl ibs_entry\n"
     "ibs_entry:\n"
@@ -358,7 +357,6 @@ void cleanup_ibs_irq(void)
 	pr_info("IRQ cleaned\n");
 }
 
-#else /* NMI */
 
 int setup_ibs_nmi(int (*handler) (unsigned int, struct pt_regs*))
 {
@@ -373,6 +371,8 @@ int setup_ibs_nmi(int (*handler) (unsigned int, struct pt_regs*))
 	store_idt(&idtr);
 	desc = (gate_desc*) idtr.address;
 	desc += 2;
+
+	setup_ibs_irq(NULL);
 
 	pr_info("NMI handler at: %llx", ((unsigned long long)(desc->offset_high) << 32) | 
 		(desc->offset_middle << 16) | desc->offset_low);
@@ -395,4 +395,3 @@ void cleanup_ibs_nmi(void)
 {
 	unregister_nmi_handler(NMI_LOCAL, NMI_NAME);
 }// cleanup_ibs_nmi
-#endif

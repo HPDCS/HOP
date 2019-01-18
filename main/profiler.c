@@ -24,71 +24,91 @@ int main(int argc, char **argv)
 	struct tid_stats tstats;
 
 	if ((option = getopt(argc, argv, ARGS)) != -1) {
-        	fd = open(HOP_CTL_DEVICE, HOP_DEV_O_MODE);
-        	if (fd < 0) goto failure;
+			fd = open(HOP_CTL_DEVICE, HOP_DEV_O_MODE);
+			if (fd < 0) goto failure;
 		err = 0;
 	}
 
-        while(!err && option != -1) {
-        	switch(option) {
-                case 'c':
-                        err = ioctl(fd, HOP_CLEAN_TIDS);
-                        break;
-        	case 'n':
-        		err = ioctl(fd, HOP_PROFILER_ON);
-        		break;
-        	case 'f':
-        		err = ioctl(fd, HOP_PROFILER_OFF);
-        		break;
-        	case 's':
-        		/* if invalid integer the ioctl will fail */
-                        val = atoi(optarg);
-        		err = ioctl(fd, HOP_SET_SAMPLING, &val);
-        		break;
-        	case 'b':
-        		/* if invalid integer the ioctl will fail */
-                        val = atoi(optarg);
-        		err = ioctl(fd, HOP_SET_BUF_SIZE, &val);
-        		break;
-                case 'p':
-			/* if invalid integer the ioctl will fail */
-			err = ioctl(fd, HOP_CTL_STATS, &cstats);
-			if (!err) {
-				printf("%u %lu %lu %lu %lu | %lu\n", 
-					0, cstats.no_ibs, cstats.spurious,
-					cstats.requests, cstats.denied,
-					(cstats.latency / cstats.requests));
-			}
-			break;
-                case 't':
-                	sprintf(path, "%s/%u", HOP_PATH, atoi(optarg));
-	                fdt = open(path, HOP_DEV_O_MODE);
-	        	if (fdt < 0) goto failure;
-
-			/* if invalid integer the ioctl will fail */
-			err = ioctl(fdt, HOP_TID_STATS, &tstats);
-			if (!err) {
-				printf("%u %lu %lu %lu %lu\n",
-					tstats.tid, tstats.busy, tstats.kernel,
-					tstats.memory, tstats.samples);
-
-				printf("Pages:\n");
-				for (idx = 0; idx < tstats.pages_length; ++idx) {
-					printf("[%llx]: %llu\n", tstats.pages[idx].page, tstats.pages[idx].counter);
+		while(!err && option != -1) {
+			switch(option) {
+				case 'c':
+						err = ioctl(fd, HOP_CLEAN_TIDS);
+						break;
+			case 'n':
+				err = ioctl(fd, HOP_PROFILER_ON);
+				break;
+			case 'f':
+				err = ioctl(fd, HOP_PROFILER_OFF);
+				break;
+			case 's':
+				/* if invalid integer the ioctl will fail */
+						val = atoi(optarg);
+				err = ioctl(fd, HOP_SET_SAMPLING, &val);
+				break;
+			case 'b':
+				/* if invalid integer the ioctl will fail */
+						val = atoi(optarg);
+				err = ioctl(fd, HOP_SET_BUF_SIZE, &val);
+				break;
+			case 'p':
+				/* if invalid integer the ioctl will fail */
+				err = ioctl(fd, HOP_CTL_STATS, &cstats);
+				if (!err) {
+					printf("%u %lu %lu %lu %lu | %lu\n", 
+						0, cstats.no_ibs, cstats.spurious,
+						cstats.requests, cstats.denied,
+						(cstats.latency / cstats.requests));
 				}
-			}
-			close(fdt);
-			break;
-		default:
-			goto end;
-	       	}
-	       	/* get next arg */
-	       	option = getopt(argc, argv, ARGS);
-        }
+				break;
+			case 't':
+				sprintf(path, "%s/%u", HOP_PATH, atoi(optarg));
+				fdt = open(path, HOP_DEV_O_MODE);
+				if (fdt < 0) goto failure;
 
-        close(fd);
+				/* if invalid integer the ioctl will fail */
+				err = ioctl(fdt, HOP_TID_STATS, &tstats);
+				if (!err) {
+					printf("%u %lu %lu %lu %lu\n",
+						tstats.tid, tstats.busy, tstats.kernel,
+						tstats.memory, tstats.samples, tstats.pages_length);
+
+					printf("Pages:\n");
+					for (idx = 0; idx < tstats.pages_length; ++idx) {
+						printf("[%llx]: %llu\n", tstats.pages[idx].page, tstats.pages[idx].counter);
+					}
+				}
+				close(fdt);
+				break;
+			case 'x':
+				sprintf(path, "%s/%u", HOP_PATH, atoi(optarg));
+				fdt = open(path, HOP_DEV_O_MODE);
+				if (fdt < 0) goto failure;
+
+				/* if invalid integer the ioctl will fail */
+				err = ioctl(fdt, HOP_TID_STATS, &tstats);
+				if (!err) {
+					tstats.pages = malloc(tstats.pages_length * sizeof(struct tid_page));
+					err = ioctl(fdt, HOP_TID_PAGES, tstats.pages);
+					if (!err) {
+						printf("Pages:\n");
+						for (idx = 0; idx < tstats.pages_length; ++idx) {
+							printf("[%llx]: %llu\n", tstats.pages[idx].page, tstats.pages[idx].counter);
+						}
+					}
+					free(tstats.pages);
+				}
+				close(fdt);
+				break;
+			default:
+				goto end;
+				}
+				/* get next arg */
+				option = getopt(argc, argv, ARGS);
+			}
+
+		close(fd);
 end:
-        exit(EXIT_SUCCESS);
+		exit(EXIT_SUCCESS);
 failure:
 	exit(EXIT_FAILURE);
 }// main

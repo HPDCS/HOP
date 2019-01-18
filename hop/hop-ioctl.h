@@ -56,6 +56,7 @@ struct tid_stats {
 
 #define HOP_CTL_STATS						_IOR(HOP_IOC_MAGIC, _IOR_NB, struct ctl_stats)
 #define HOP_TID_STATS						_IOR(HOP_IOC_MAGIC, _IOR_NB + 1, struct tid_stats)
+#define HOP_TID_PAGES						_IOR(HOP_IOC_MAGIC, _IOR_NB + 2, struct tid_page*)
 
 #define HOP_ADD_TID						_IOW(HOP_IOC_MAGIC, _IOW_NB, pid_t)
 #define HOP_DEL_TID						_IOW(HOP_IOC_MAGIC, _IOW_NB + 1, pid_t)

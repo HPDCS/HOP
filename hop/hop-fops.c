@@ -142,9 +142,15 @@ long hop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 			err = -EFAULT;
 		}
 		break;
+	case HOP_TID_PAGES:
+		stats.pages_length = thread_stats_page_access(pt->tid, stats.pages);
+
+		if (copy_to_user((struct tid_page __user *)arg, stats.pages, stats.pages_length)) {
+			err = -EFAULT;
+		}
 	}
 	return err;
-}// ibs_ioctl
+}// hop_ioctl
 
 static void clear_stats(void)
 {

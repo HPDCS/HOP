@@ -135,6 +135,9 @@ long hop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		stats.kernel = pt->kernel;
 		stats.memory = pt->memory;
 		stats.samples = pt->samples;
+
+		stats.pages_length = thread_stats_page_access(pt->tid, stats.pages);
+
 		if (copy_to_user((struct tid_stats __user *)arg, &(stats), sizeof(struct tid_stats))) {
 			err = -EFAULT;
 		}
@@ -246,7 +249,6 @@ long hop_ctl_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		__get_user(val, (int __user *) arg);
 		disable_profiler_thread((pid_t)val);
 		// create a new FOP
-		print_threads_stats((pid_t)val);
 		if (!err) pr_info("profiler switched OFF for TID %u", (pid_t)val);
 		break;
 	case HOP_SET_BUF_SIZE:

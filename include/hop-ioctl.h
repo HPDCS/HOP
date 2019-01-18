@@ -23,12 +23,20 @@ struct ctl_stats {
 	unsigned long latency;
 };
 
+struct tid_page {
+	unsigned long long page;
+	unsigned long long counter;
+};
+
 struct tid_stats {
 	pid_t tid;
 	unsigned long busy;
 	unsigned long kernel;
 	unsigned long memory;
 	unsigned long samples;
+
+	struct tid_page *pages;
+	unsigned long pages_length;
 };
 
 

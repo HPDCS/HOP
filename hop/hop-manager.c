@@ -229,11 +229,11 @@ void cleanup_active_threads(void)
 /**
  * This method print the pages accessed by the specified pid
  */
-int print_threads_stats(pid_t tid)
+int thread_stats_page_access(pid_t tid, struct tid_page *pages)
 {
 	int bkt;
 	// int err = 1;
-	int err = 0;
+	int pos = 0;
 	struct pt_info *pt;
 	struct pg_info *pg;
 
@@ -243,15 +243,23 @@ int print_threads_stats(pid_t tid)
 	LCK_HASH;
 	hash_for_each_possible(tid_htable, pt, node, tid)
 		if(pt->tid == tid) {
+
+			pages = vmalloc(pt->accessed_pages * sizeof(struct tid_page));
+
 			pr_info("tid %u\n", tid);
 			/* this is the expanded macro of 'hash_for_each_possible' */
 			for ((bkt) = 0, pg = NULL; pg == NULL && (bkt) < (1ULL << pt->hash_bits); (bkt)++)
-				hlist_for_each_entry(pg, &pt->page_htable[bkt], node)
-					pr_info("[%llx] %llu\n", pg->page, pg->counter);
+				hlist_for_each_entry(pg, &pt->page_htable[bkt], node) {
+
+					pages[pos].page = pg->page;
+					pages[pos].counter = pg->counter;
+					pos++;
+					// pr_info("[%llx] %llu\n", pg->page, pg->counter);
+				}
 		}
 	UCK_HASH;
 
-	return err;
+	return pos;
 }// print_threads_stats
 
 /* TODO: make a unique method */
@@ -342,6 +350,7 @@ int setup_thread_resources(pid_t tid)
 
 	// this should ensure the initialization of the hlist
 	new_pt->hash_bits = 12;
+	new_pt->accessed_pages = 0;
 	new_pt->page_htable = (struct hlist_head *) vzalloc((1<<12) * sizeof(struct hlist_head));
 
 	pr_info("pt %u added", tid);

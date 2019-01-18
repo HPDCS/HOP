@@ -22,8 +22,12 @@ extern void *pcpu_hop_dev;
 #define hash_add(hashtable, bits, node, key)						\
 	hlist_add_head(node, &hashtable[hash_min(key, bits)])
 
-static inline void hash_add_or_increase(struct hlist_head *pg_htable, unsigned hash_bits, unsigned long long page)
+static inline void hash_add_or_increase(struct pt_info *pt, unsigned long long page)
 {
+
+	struct hlist_head *pg_htable = pt->page_htable;
+	unsigned hash_bits = pt->hash_bits;
+
 	struct pg_info *pg;
 	unsigned long long key = page;
 
@@ -34,6 +38,8 @@ static inline void hash_add_or_increase(struct hlist_head *pg_htable, unsigned h
 			pg->counter ++;
 			return;
 		}
+
+	pt->accessed_pages ++;
 
 	pg = kzalloc(sizeof(struct pg_info), GFP_KERNEL);
 	pg->page = page;
@@ -55,7 +61,6 @@ static inline int handle_ibs_event(struct pt_regs *regs)
 	// struct ibs_op *entry;		/* entry being filled */
 	struct pt_info *pt;		/* profiled thread info */
 //	struct pt_dbuf *dbuf;		/* pertid dedicated buffer */
-	struct hlist_head *pg_htable;		/* pertid dedicated htable */
 	// struct pg_info *pg_info;
 
 	unsigned long *kstack;		/* logical view of the last kernel stack entry (64) */
@@ -109,8 +114,6 @@ static inline int handle_ibs_event(struct pt_regs *regs)
 	/* build canonical form pointer */
 	pt = (struct pt_info*)build_ptr(*kstack);
 
-	pg_htable = pt->page_htable;
-
 
 	// dbuf = pt->dbuf;
 
@@ -145,7 +148,7 @@ static inline int handle_ibs_event(struct pt_regs *regs)
 		rdmsrl(MSR_IBS_DC_LIN_AD, entry);
 
 		// rewrite from scratch
-		hash_add_or_increase(pg_htable, pt->hash_bits, (entry >> 12));
+		hash_add_or_increase(pt, (entry >> 12));
 		// pt->memory++;
 	}
 

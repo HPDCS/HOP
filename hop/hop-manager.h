@@ -4,6 +4,7 @@
 #include <linux/cdev.h>
 #include <linux/hashtable.h>
 
+#include "hop-ioctl.h"
 #include "ibs-control.h"
 
 /* 
@@ -64,7 +65,7 @@ struct pt_info *lookup(pid_t tid);
 
 void cleanup_active_threads(void);
 
-int print_threads_stats(pid_t tid);
+int thread_stats_page_access(pid_t tid, struct tid_page *pages);
 
 int enable_profiler_thread(pid_t tid);
 

@@ -55,6 +55,7 @@ struct pt_info {
 	volatile unsigned long samples;
 	volatile unsigned long overwritten;
 
+	unsigned long accessed_pages;
 	unsigned hash_bits;
 	struct hlist_head *page_htable; //page_info struct
 

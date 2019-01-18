@@ -18,7 +18,7 @@ int main(int argc, char **argv)
 	/* nothing to do */
 	if (argc < 2) goto end;
 
-	int fd, fdt, option, err, val;
+	int fd, fdt, option, err, val, idx;
 	char path[128];
 	struct ctl_stats cstats;
 	struct tid_stats tstats;
@@ -71,6 +71,11 @@ int main(int argc, char **argv)
 				printf("%u %lu %lu %lu %lu\n",
 					tstats.tid, tstats.busy, tstats.kernel,
 					tstats.memory, tstats.samples);
+
+				printf("Pages:\n");
+				for (idx = 0; idx < tstats.pages_length; ++idx) {
+					printf("[%llx]: %llu\n", tstats.pages[idx].page, tstats.pages[idx].counter);
+				}
 			}
 			close(fdt);
 			break;

@@ -119,7 +119,7 @@ long hop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
 	long err = 0;
 	struct pt_info *pt = (struct pt_info *) file->private_data;
-	struct tid_stats stats;
+	struct tid_stats stats = {.pages = 0};
 
 	/* don't even decode wrong cmds: better returning  ENOTTY than EFAULT */
 	if (_IOC_TYPE(cmd) != HOP_IOC_MAGIC) return -ENOTTY;
@@ -143,11 +143,20 @@ long hop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		}
 		break;
 	case HOP_TID_PAGES:
-		stats.pages_length = thread_stats_page_access(pt->tid, stats.pages);
+		stats.pages_length = thread_stats_page_access(pt->tid, &(stats.pages));
+		
+		pr_info("Ready to send %llu pages - address: %llx\n", stats.pages_length, stats.pages);
+		
+	//	for (err = 0; err < stats.pages_length; ++err)
+			pr_info("[%llx]: %llu\n", stats.pages->page, stats.pages->counter);
 
-		if (copy_to_user((struct tid_page __user *)arg, stats.pages, stats.pages_length)) {
+		err = 0;
+			
+		if (copy_to_user((void __user *)arg, (void *) stats.pages, sizeof(struct tid_page) * stats.pages_length)) {
 			err = -EFAULT;
 		}
+		if (stats.pages_length)
+			vfree(stats.pages);
 	}
 	return err;
 }// hop_ioctl

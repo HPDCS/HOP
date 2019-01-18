@@ -229,7 +229,7 @@ void cleanup_active_threads(void)
 /**
  * This method print the pages accessed by the specified pid
  */
-int thread_stats_page_access(pid_t tid, struct tid_page *pages)
+int thread_stats_page_access(pid_t tid, struct tid_page **pages)
 {
 	int bkt;
 	// int err = 1;
@@ -243,18 +243,20 @@ int thread_stats_page_access(pid_t tid, struct tid_page *pages)
 	LCK_HASH;
 	hash_for_each_possible(tid_htable, pt, node, tid)
 		if(pt->tid == tid) {
+			
+			pr_info("DEBUG address %llx", pages);
 
-			pages = vmalloc(pt->accessed_pages * sizeof(struct tid_page));
+			*pages = vmalloc(pt->accessed_pages * sizeof(struct tid_page));
 
-			pr_info("tid %u\n", tid);
+			pr_info("Tid %u found - allocated memory at %llx\n", tid, *pages);
 			/* this is the expanded macro of 'hash_for_each_possible' */
 			for ((bkt) = 0, pg = NULL; pg == NULL && (bkt) < (1ULL << pt->hash_bits); (bkt)++)
 				hlist_for_each_entry(pg, &pt->page_htable[bkt], node) {
 
-					pages[pos].page = pg->page;
-					pages[pos].counter = pg->counter;
+					//(*pages)[pos].page = pg->page;
+					//(*pages)[pos].counter = pg->counter;
 					pos++;
-					// pr_info("[%llx] %llu\n", pg->page, pg->counter);
+					// pr_info("[%llx] %llu\n", pages[pos-1].page, pages[pos-1].counter);
 				}
 		}
 	UCK_HASH;

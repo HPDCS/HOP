@@ -10,7 +10,7 @@
 #define HOP_CTL_DEVICE "/dev/hop/ctl"
 #define HOP_DEV_O_MODE 0666
 
-#define ARGS "cnfs:b:pt:"
+#define ARGS "cnfs:b:pt:x:"
 
 int main(int argc, char **argv)
 {
@@ -68,14 +68,9 @@ int main(int argc, char **argv)
 				/* if invalid integer the ioctl will fail */
 				err = ioctl(fdt, HOP_TID_STATS, &tstats);
 				if (!err) {
-					printf("%u %lu %lu %lu %lu\n",
+					printf("%u %lu %lu %lu %lu - %lu\n",
 						tstats.tid, tstats.busy, tstats.kernel,
 						tstats.memory, tstats.samples, tstats.pages_length);
-
-					printf("Pages:\n");
-					for (idx = 0; idx < tstats.pages_length; ++idx) {
-						printf("[%llx]: %llu\n", tstats.pages[idx].page, tstats.pages[idx].counter);
-					}
 				}
 				close(fdt);
 				break;
@@ -88,14 +83,18 @@ int main(int argc, char **argv)
 				err = ioctl(fdt, HOP_TID_STATS, &tstats);
 				if (!err) {
 					tstats.pages = malloc(tstats.pages_length * sizeof(struct tid_page));
-					err = ioctl(fdt, HOP_TID_PAGES, tstats.pages);
+					err = ioctl(fdt, HOP_TID_PAGES, &tstats.pages);
 					if (!err) {
 						printf("Pages:\n");
 						for (idx = 0; idx < tstats.pages_length; ++idx) {
 							printf("[%llx]: %llu\n", tstats.pages[idx].page, tstats.pages[idx].counter);
 						}
+					} else {
+						printf("Error HOP_TID_PAGES\n");
 					}
 					free(tstats.pages);
+				} else {
+					printf("Error HOP_TID_STATS\n");
 				}
 				close(fdt);
 				break;

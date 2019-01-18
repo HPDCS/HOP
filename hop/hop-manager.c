@@ -237,10 +237,13 @@ int print_threads_stats(pid_t tid)
 	struct pt_info *pt;
 	struct pg_info *pg;
 
+	pr_info("Printing status\n");
+
 	/* check if the the tid is already profiled */
 	LCK_HASH;
 	hash_for_each_possible(tid_htable, pt, node, tid)
 		if(pt->tid == tid) {
+			pr_info("tid %u\n", tid);
 			/* this is the expanded macro of 'hash_for_each_possible' */
 			for ((bkt) = 0, pg = NULL; pg == NULL && (bkt) < (1ULL << pt->hash_bits); (bkt)++)
 				hlist_for_each_entry(pg, &pt->page_htable[bkt], node)

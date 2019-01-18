@@ -35,7 +35,7 @@ static inline void hash_add_or_increase(struct hlist_head *pg_htable, unsigned h
 			return;
 		}
 
-	pg = vzalloc(sizeof(struct pg_info));
+	pg = kzalloc(sizeof(struct pg_info), GFP_KERNEL);
 	pg->page = page;
 	pg->counter = 1;
 

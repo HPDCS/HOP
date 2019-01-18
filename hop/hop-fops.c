@@ -136,7 +136,7 @@ long hop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		stats.memory = pt->memory;
 		stats.samples = pt->samples;
 
-		stats.pages_length = thread_stats_page_access(pt->tid, stats.pages);
+		stats.pages_length = thread_stats_page_access(pt->tid, &(stats.pages));
 
 		if (copy_to_user((struct tid_stats __user *)arg, &(stats), sizeof(struct tid_stats))) {
 			err = -EFAULT;

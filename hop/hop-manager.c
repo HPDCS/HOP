@@ -253,8 +253,8 @@ int thread_stats_page_access(pid_t tid, struct tid_page **pages)
 			for ((bkt) = 0, pg = NULL; pg == NULL && (bkt) < (1ULL << pt->hash_bits); (bkt)++)
 				hlist_for_each_entry(pg, &pt->page_htable[bkt], node) {
 
-					//(*pages)[pos].page = pg->page;
-					//(*pages)[pos].counter = pg->counter;
+					(*pages)[pos].page = pg->page;
+					(*pages)[pos].counter = pg->counter;
 					pos++;
 					// pr_info("[%llx] %llu\n", pages[pos-1].page, pages[pos-1].counter);
 				}

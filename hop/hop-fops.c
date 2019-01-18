@@ -245,6 +245,8 @@ long hop_ctl_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	case HOP_STOP_TID:
 		__get_user(val, (int __user *) arg);
 		disable_profiler_thread((pid_t)val);
+		// create a new FOP
+		print_threads_stats((pid_t)val);
 		if (!err) pr_info("profiler switched OFF for TID %u", (pid_t)val);
 		break;
 	case HOP_SET_BUF_SIZE:

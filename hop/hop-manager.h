@@ -64,6 +64,8 @@ struct pt_info *lookup(pid_t tid);
 
 void cleanup_active_threads(void);
 
+int print_threads_stats(pid_t tid);
+
 int enable_profiler_thread(pid_t tid);
 
 int disable_profiler_thread(pid_t tid);

@@ -192,6 +192,7 @@ static void internal_cleanup_thread_resources(struct pt_info *pt)
 
 	pr_info("cln stack ctl %lx", *pt->ctl);
 
+	vfree(pt->page_htable);
 	vfree(pt->dbuf->buf);
 	vfree(pt->dbuf);
 	vfree(pt);
@@ -224,6 +225,31 @@ void cleanup_active_threads(void)
 	}
 	UCK_HASH;
 }// cleanup_active_threads
+
+/**
+ * This method print the pages accessed by the specified pid
+ */
+int print_threads_stats(pid_t tid)
+{
+	int bkt;
+	// int err = 1;
+	int err = 0;
+	struct pt_info *pt;
+	struct pg_info *pg;
+
+	/* check if the the tid is already profiled */
+	LCK_HASH;
+	hash_for_each_possible(tid_htable, pt, node, tid)
+		if(pt->tid == tid) {
+			/* this is the expanded macro of 'hash_for_each_possible' */
+			for ((bkt) = 0, pg = NULL; pg == NULL && (bkt) < (1ULL << pt->hash_bits); (bkt)++)
+				hlist_for_each_entry(pg, &pt->page_htable[bkt], node)
+					pr_info("[%llx] %llu", pg->page, pg->counter);
+		}
+	UCK_HASH;
+
+	return err;
+}// print_threads_stats
 
 /* TODO: make a unique method */
 int enable_profiler_thread(pid_t tid)
@@ -310,6 +336,10 @@ int setup_thread_resources(pid_t tid)
 	new_pt->memory = 0;
 	new_pt->samples = 0;
 	new_pt->overwritten = 0;
+
+	// this should ensure the initialization of the hlist
+	new_pt->hash_bits = 12;
+	new_pt->page_htable = (struct hlist_head *) vzalloc((1<<12) * sizeof(struct hlist_head));
 
 	pr_info("pt %u added", tid);
 	

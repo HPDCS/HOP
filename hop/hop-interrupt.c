@@ -19,6 +19,29 @@
 
 extern void *pcpu_hop_dev;
 
+#define hash_add(hashtable, bits, node, key)						\
+	hlist_add_head(node, &hashtable[hash_min(key, bits)])
+
+static inline void hash_add_or_increase(struct hlist_head *pg_htable, unsigned hash_bits, unsigned long long page)
+{
+	struct pg_info *pg;
+	unsigned long long key = page;
+
+	/* this is the exapnded macro of 'hash_for_each_possible' */
+	hlist_for_each_entry(pg, &pg_htable[hash_min(page, hash_bits)], node)
+	// hash_for_each_possible(page_htable, pg, node, key)
+		if(pg->page == key) {
+			pg->counter ++;
+			return;
+		}
+
+	pg = vzalloc(sizeof(struct pg_info));
+	pg->page = page;
+	pg->counter = 1;
+
+	hash_add(pg_htable, hash_bits, &(pg->node), page);
+}
+
 #ifdef _IRQ
 static inline void handle_ibs_event(void)
 #else
@@ -29,21 +52,23 @@ static inline int handle_ibs_event(struct pt_regs *regs)
 	int retval = NMI_DONE;
 
 	struct hop_dev *dev;		/* percpu meta info */
-//	struct ibs_op *entry;		/* entry being filled */
-//	struct pt_info *pt;		/* profiled thread info */
+	// struct ibs_op *entry;		/* entry being filled */
+	struct pt_info *pt;		/* profiled thread info */
 //	struct pt_dbuf *dbuf;		/* pertid dedicated buffer */
+	struct hlist_head *pg_htable;		/* pertid dedicated htable */
+	// struct pg_info *pg_info;
 
-//	unsigned long *kstack;		/* logical view of the last kernel stack entry (64) */
+	unsigned long *kstack;		/* logical view of the last kernel stack entry (64) */
 	u64 midx;			/* used to read MSRs content */
-	unsigned long tmp;
+	// unsigned long tmp;
+
+	unsigned long long entry;
 
 	
 
 	dev = this_cpu_ptr(pcpu_hop_dev);
 	
-	read_pmc(1, tmp);
-	dev->latency += (tmp - dev->counter);
-
+	// dev->latency += (tmp - dev->counter);
 
 	dev->requests++;		/* # of times this handler is invoked on this cpu */
 
@@ -68,22 +93,26 @@ static inline int handle_ibs_event(struct pt_regs *regs)
 		goto out;
 
 	/* catch spurious interrupt */
-//	if (!test_bit(IBS_ACTIVE, &dev->ibs.state)) {
-//		dev->spurious++;
-//		goto out;
-//	}
+	if (!test_bit(IBS_ACTIVE, &dev->ibs.state)) {
+		dev->spurious++;
+		goto out;
+	}
 
-//	kstack = (unsigned long*)cur_thread_buf;
+	kstack = (unsigned long*)cur_thread_buf;
 
 	/* the pid must be profiled and the crc consistent */
-//	if (!check_crc((*kstack)) || !test_bit(ENABLED_BIT, kstack)) {
-//		dev->denied++;
-//		goto out;
-//	}
+	if (!check_crc((*kstack)) || !test_bit(ENABLED_BIT, kstack)) {
+		dev->denied++;
+		goto out;
+	}
 
 	/* build canonical form pointer */
-//	pt = (struct pt_info*)build_ptr(*kstack);
-//	dbuf = pt->dbuf;
+	pt = (struct pt_info*)build_ptr(*kstack);
+
+	pg_htable = pt->page_htable;
+
+
+	// dbuf = pt->dbuf;
 
 	/* NMI signals that is working on buffer, anyone else must wait or abort */
 //	if (test_and_set_bit(PROCESS_BIT, kstack)) {
@@ -106,14 +135,19 @@ static inline int handle_ibs_event(struct pt_regs *regs)
 //	rdmsrl(MSR_IBS_OP_RIP, entry->ibs_op_rip.value);
 //	rdmsrl(MSR_IBS_OP_DATA, entry->ibs_op_data.value);
 //	rdmsrl(MSR_IBS_OP_DATA2, entry->ibs_op_data2.value);
-//	rdmsrl(MSR_IBS_OP_DATA3, entry->ibs_op_data3.value);
+	rdmsrl(MSR_IBS_OP_DATA3, entry);
 //	rdmsrl(MSR_IBS_DC_LIN_AD, entry->ibs_dc_lin_ad.value);
 //	rdmsrl(MSR_IBS_DC_PHYS_AD, entry->ibs_dc_phys_ad.value);
 
 	/* check valid memory operation */
-//	if ((entry->ibs_op_data3.value & IBS_DC_PHY_ADDR_VALID) ||
-//		(entry->ibs_op_data3.value & IBS_DC_LIN_ADDR_VALID))
-//		pt->memory++;
+	if (entry & IBS_DC_LIN_ADDR_VALID) {
+
+		rdmsrl(MSR_IBS_DC_LIN_AD, entry);
+
+		// rewrite from scratch
+		hash_add_or_increase(pg_htable, pt->hash_bits, (entry >> 12));
+		// pt->memory++;
+	}
 
 	/* get the time stamp counter (TSC) */
 //	rdtscll(entry->tsc);
@@ -133,7 +167,6 @@ static inline int handle_ibs_event(struct pt_regs *regs)
 
 //skip:
 	/* re-enable IBS and add randomization to sampling */
-	read_pmc(1, dev->counter);
 	set_and_go_ibs_random(&dev->ibs);
 
 	/* NMI has done */

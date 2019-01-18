@@ -2,6 +2,7 @@
 #define HOP_STRUCTS_H
 
 #include <linux/cdev.h>
+#include <linux/hashtable.h>
 
 #define TAIL_MASK ((1ULL << 32) - 1)
 #define HEAD_MASK (~TAIL_MASK)
@@ -54,9 +55,19 @@ struct pt_info {
 	volatile unsigned long samples;
 	volatile unsigned long overwritten;
 
+	unsigned hash_bits;
+	struct hlist_head *page_htable; //page_info struct
+
 	wait_queue_head_t readq;	/* used for poll fop */
 	struct mutex readl;		/* read lock */
 	struct cdev cdev;		/* cdev for char dev */
+	struct hlist_node node;		/* hashtable struct */
+};
+
+/* per-thread accessed page information */
+struct pg_info {
+	unsigned long long page;
+	unsigned long counter;
 	struct hlist_node node;		/* hashtable struct */
 };
 

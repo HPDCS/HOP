@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 					tstats.pages = malloc(tstats.pages_length * sizeof(struct tid_page));
 					err = ioctl(fdt, HOP_TID_PAGES, &tstats.pages);
 					if (!err) {
-						printf("Pages:\n");
+						printf("Pages: %u\n", tstats.pages_length);
 						for (idx = 0; idx < tstats.pages_length; ++idx) {
 							printf("[%llx]: %llu\n", tstats.pages[idx].page, tstats.pages[idx].counter);
 						}

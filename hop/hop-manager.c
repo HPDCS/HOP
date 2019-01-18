@@ -244,7 +244,7 @@ int print_threads_stats(pid_t tid)
 			/* this is the expanded macro of 'hash_for_each_possible' */
 			for ((bkt) = 0, pg = NULL; pg == NULL && (bkt) < (1ULL << pt->hash_bits); (bkt)++)
 				hlist_for_each_entry(pg, &pt->page_htable[bkt], node)
-					pr_info("[%llx] %llu", pg->page, pg->counter);
+					pr_info("[%llx] %llu\n", pg->page, pg->counter);
 		}
 	UCK_HASH;
 

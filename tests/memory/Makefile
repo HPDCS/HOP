@@ -1,7 +1,7 @@
-CFLAGS_PRE=--coverage -O3 -Wall -Wextra -I ../src/
-CFLAGS_POST=-L ../src/ -lpthread -lm
+CC=gcc
+CFLAGS_PRE=-Wall -O3
+CFLAGS_POST=-lpthread
 
-.PHONY: dymelor
+hot_pages:
+	$(CC) $(CFLAGS_PRE) hot_page.c $(CFLAGS_POST) -o hot_pages 
 
-dymelor:
-	$(CC) -D_GNU_SOURCE -DOS_LINUX $(CFLAGS_PRE) ../src/arch/x86.c dymelor.c -o dymelor -std=gnu89 -ldymelor $(CFLAGS_POST) 

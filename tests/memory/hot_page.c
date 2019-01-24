@@ -225,6 +225,7 @@ static void *memory_test(void *ptr)
 
 		// printf("[-] for-loop: i %u, max %llu\n", i, st->max);
 		
+		
 		actions = RANDOM(WRITE_ACT_MAX);
 
 		for (j = 0; j < actions; j++) {
@@ -248,7 +249,7 @@ static void *memory_test(void *ptr)
 		}
 
 		i += actions;
-
+		
 		actions = RANDOM(FREE_ACT_MAX);
 		
 		for (j = 0; j < actions; j++) {
@@ -379,4 +380,5 @@ int main(int argc, char const *argv[])
 	printf("Done.\n");
 	return 0;
 }// main
+
 

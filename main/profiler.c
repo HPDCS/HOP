@@ -82,10 +82,14 @@ int main(int argc, char **argv)
 				/* if invalid integer the ioctl will fail */
 				err = ioctl(fdt, HOP_TID_STATS, &tstats);
 				if (!err) {
+					printf("Pages: %u\n", tstats.pages_length);
+					printf("Allocated memory: %u\n", sizeof(struct tid_page) * tstats.pages_length);
+					printf("Memory at: %llx\n", tstats.pages);
+
 					tstats.pages = malloc(tstats.pages_length * sizeof(struct tid_page));
-					err = ioctl(fdt, HOP_TID_PAGES, &tstats.pages);
+					err = ioctl(fdt, HOP_TID_PAGES, tstats.pages);
 					if (!err) {
-						printf("Pages: %u\n", tstats.pages_length);
+						// printf("Pages: %u\n", tstats.pages_length);
 						for (idx = 0; idx < tstats.pages_length; ++idx) {
 							printf("[%llx]: %llu\n", tstats.pages[idx].page, tstats.pages[idx].counter);
 						}

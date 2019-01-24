@@ -149,6 +149,9 @@ long hop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		
 	//	for (err = 0; err < stats.pages_length; ++err)
 			pr_info("[%llx]: %llu\n", stats.pages->page, stats.pages->counter);
+		
+		pr_info("Allocated memory: %u\n", sizeof(struct tid_page) * stats.pages_length);
+		pr_info("Ready to copy on %llx\n", arg);
 
 		err = 0;
 			

@@ -12,6 +12,8 @@
 #include <stdarg.h>
 #include <strings.h>
 
+#include <linux/version.h>
+
 #define DEBUG		0
 #define printd(...)	{if(DEBUG) printf(__VA_ARGS__);}
 
@@ -51,11 +53,20 @@ static unsigned all_pages [4096];
 static unsigned page_ctr = 0;
 
 void __alloc_memory_pool() {
+
+	int flags = MAP_ANONYMOUS | MAP_PRIVATE;
+	
+	#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,17,0)
+	flags |= MAP_FIXED_NOREPLACE;
+	#else
+	flags |= MAP_FIXED;
+	#endif
+
 	__memory = mmap(
 		(void*) __memory_addr,
 		(size_t) __memory_size, 
 		PROT_READ | PROT_WRITE,
-		MAP_FIXED_NOREPLACE | MAP_ANONYMOUS | MAP_PRIVATE,
+		flags,
 		-1,
 		0);
 	

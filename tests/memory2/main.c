@@ -7,13 +7,97 @@
 
 #include "dict.h"
 
+//#define DUMP_ORACLE
+
+/* HOP CODE START */
+#include "hop-ioctl.h"  /* used for hop utility */
+#include <unistd.h>
+#include <asm-generic/errno-base.h>
+#include <sys/ioctl.h>  /* ioctl utility */
+#include <sys/types.h>
+#include <sys/syscall.h>
+#include <stdio.h>
+#include <sys/time.h>
+
+#include <fcntl.h>
+
+/**
+ * Returns the current time in microseconds.
+ */
+long getMicrotime(void)
+{
+    struct timeval currentTime;
+    gettimeofday(&currentTime, NULL);
+    return currentTime.tv_sec * (int)1e6 + currentTime.tv_usec;
+}
+
+
+#define HOP_CTL_DEVICE "/dev/hop/ctl"
+#define HOP_DEV_O_MODE 0666
+#define HOP_DEV_PATH "/dev/hop"
+
+struct hop_requester {
+    int fd;
+    int active;
+    int tid;
+};
+
+int request_pt(struct hop_requester *req)
+{
+    if (!req) return -EINVAL;
+
+    req->active = 0;
+    req->tid = syscall(__NR_gettid);
+
+    printf("Start profiling ThreadID: %u\n", req->tid);
+
+        req->fd = open(HOP_CTL_DEVICE, HOP_DEV_O_MODE);
+
+        if (req->fd < 0) {
+                printf("ERROR, cannot open %s, exit\n", HOP_CTL_DEVICE);
+                return -ENOENT;
+        }
+
+        if (ioctl(req->fd, HOP_ADD_TID, &req->tid)) {
+                printf("ERROR, cannot add TID %u for profiling, exit\n", req->tid);
+                return -EINTR;
+        }
+
+        req->active = 1;
+        return 0;
+}// request_pt
+
+void free_pt(struct hop_requester *req)
+{
+    if (!req) {
+        printf("WARNING[free_pt], got a null argument, exit\n");
+        return;
+    }
+
+    if (!req->active) {
+        printf("WARNING[free_pt], profiler not active, exit\n");
+        return;     
+    }
+
+    // if (ioctl(req->fd, HOP_DEL_TID, &req->tid)) {
+    //     printf("ERROR, cannot remove TID %u, try manually\n", req->tid);
+    // }
+
+        if (req->fd > 0) close(req->fd);
+
+    printf("Stop profiling ThreadID: %u\n", req->tid);
+}// free_pt
+/* HOP CODE END */
+
+
+
+
 #define PAGESIZE	4096
 #define MEM_PER_ITER	100*PAGESIZE
 #define __memory_addr	(1ULL << 46)//(unsigned long long) ((0xbeccaULL << 12) << 12)
 
 #define SEED		0xbadf00d;
 
-#define DUMP_ORACLE
 
 #define PAGE(addr)	(void *)((unsigned long long)addr & ~(PAGESIZE - 1))
 
@@ -137,9 +221,22 @@ int main(int argc, char **argv)
 
 	rnd_seed = SEED;
 
-	#ifdef ORACLE
+	#ifdef DUMP_ORACLE
 	page_count = dict_new();
 	#endif
+
+	/* HOP check in */
+	#ifndef DUMP_ORACLE
+	struct hop_requester req;
+
+	long time = getMicrotime();
+	
+	if (request_pt(&req)) {
+		printf("Cannot open the HOP CTL \n");
+		exit(1);
+	}
+	#endif
+	/* Resume code */	
 
 	for(i = 0; i < iterations; i++) {
 		base = memory + (i * MEM_PER_ITER);
@@ -149,9 +246,16 @@ int main(int argc, char **argv)
 		}
 	}	
 
+	/* HOP check out */
+	#ifndef DUMP_ORACLE
+	free_pt(&req);
+	printf("ID %u - Execution Time: %lu msec\n", getpid(), (getMicrotime() - time) / 1000);
+	#endif
+	/* Resume code */
+
 	munmap(memory, buflen);
 
-	#ifdef ORACLE
+	#ifdef DUMP_ORACLE
 	dump_oracle();
 	dict_free(page_count, true);
 	#endif

@@ -68,9 +68,9 @@ int main(int argc, char **argv)
 				/* if invalid integer the ioctl will fail */
 				err = ioctl(fdt, HOP_TID_STATS, &tstats);
 				if (!err) {
-					printf("%u %lu %lu %lu %lu - %lu\n",
+					printf("Tid: %u\nBusy: %lu\nRing0: %lu\nMemory: %lu\nTotal: %lu\n",
 						tstats.tid, tstats.busy, tstats.kernel,
-						tstats.memory, tstats.samples, tstats.pages_length);
+						tstats.memory, tstats.samples); //, tstats.pages_length);
 				}
 				close(fdt);
 				break;
@@ -91,7 +91,7 @@ int main(int argc, char **argv)
 					if (!err) {
 						// printf("Pages: %u\n", tstats.pages_length);
 						for (idx = 0; idx < tstats.pages_length; ++idx) {
-							printf("[%llx]: %llu\n", tstats.pages[idx].page, tstats.pages[idx].counter);
+							printf("0x%llx\t%llu\n", (tstats.pages[idx].page << 12), tstats.pages[idx].counter);
 						}
 					} else {
 						printf("Error HOP_TID_PAGES\n");

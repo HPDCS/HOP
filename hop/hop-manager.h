@@ -65,7 +65,7 @@ struct pt_info *lookup(pid_t tid);
 
 void cleanup_active_threads(void);
 
-int thread_stats_page_access(pid_t tid, struct tid_page **pages);
+int thread_stats_page_access(pid_t tid, struct tid_page **pages, unsigned *total);
 
 int enable_profiler_thread(pid_t tid);
 

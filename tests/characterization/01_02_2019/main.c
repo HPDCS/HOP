@@ -7,7 +7,7 @@
 
 #include "dict.h"
 
-//#define DUMP_ORACLE
+// #define DUMP_ORACLE
 
 /* HOP CODE START */
 #include "hop-ioctl.h"  /* used for hop utility */
@@ -95,7 +95,11 @@ void free_pt(struct hop_requester *req)
 #define PAGESIZE	4096
 #define MEM_PER_ITER	100*PAGESIZE
 #define __memory_addr	(1ULL << 46)//(unsigned long long) ((0xbeccaULL << 12) << 12)
-
+#define MIN_ACCESSES	500
+#define MAX_ACCESSES	600
+#define HOTNESS_PROB	0.1
+#define HOTNESS_FACTOR  5.0
+#define PAGES 		(MEM_PER_ITER / PAGESIZE)
 #define SEED		0xbadf00d;
 
 
@@ -163,28 +167,27 @@ static inline unsigned rng(void)
 	return x;
 }
 
-static void mem_write(unsigned char *ptr, size_t size)
+static void mem_write(unsigned char *ptr, size_t size, int opcount)
 {
-	size_t i, j;
+	size_t i = ptr, j;
 	size_t start, span;
 
-	start = rng() % size;
-	span = rng() % PAGESIZE;
+	// start = rng() % size;
+	span = 100 + (rng() % (PAGESIZE - 1));
 
-	bzero(ptr, size);
 
-	if (!size)
-		return;
-	for (i = start; i < size; i += span) {
+	//if (!size)
+	//	return;
+	for (i = 0; i < size; i += span) {
 		j = (size_t)ptr ^ i;
 		ptr[i] = j ^ (j >> 8);
-		ORACLE(&ptr[i]);
+		ORACLE(&ptr[0]);
 	}
 }
 
 int main(int argc, char **argv)
 {
-	int i, j, iterations, opcount;
+	int i, j, k, iterations, opcount, hot_pages;
 	unsigned char *base;
 	size_t buflen;
 	int flags = MAP_ANONYMOUS | MAP_PRIVATE;
@@ -225,6 +228,21 @@ int main(int argc, char **argv)
 	page_count = dict_new();
 	#endif
 
+	int v[MEM_PER_ITER/PAGESIZE];	
+	hot_pages = 0;
+	for(i = 0; i < PAGES; i++) {
+		if (rng() < ((1UL << 32) * HOTNESS_PROB)) {
+			v[i] = (rng() % (int)((MAX_ACCESSES - MIN_ACCESSES) * HOTNESS_FACTOR)) + 10 *MIN_ACCESSES * HOTNESS_FACTOR;
+		} else {
+			v[i] = (rng() % (int)(MAX_ACCESSES - MIN_ACCESSES)) + MIN_ACCESSES;
+		}
+		//if(rng() % (unsigned long)((1UL << 31) * HOTNESS_PROB)) {
+		//	v[hot_pages++] = i;
+		//}
+	}
+	v[hot_pages] = -1;
+
+
 	/* HOP check in */
 	#ifndef DUMP_ORACLE
 	struct hop_requester req;
@@ -238,11 +256,15 @@ int main(int argc, char **argv)
 	#endif
 	/* Resume code */	
 
-	for(i = 0; i < iterations; i++) {
-		base = memory + (i * MEM_PER_ITER);
+	base = memory; // + (i * MEM_PER_ITER);
 
-		for(j = 0; j < opcount; j++) {
-			mem_write(base, MEM_PER_ITER);
+	for(i = 0; i < PAGES; i++) {
+		// base = memory + (i * MEM_PER_ITER);
+
+		for(j = 0; j < v[i]; j++) {
+			for(k = 0; k < opcount; ++k)
+				mem_write(base + (i * PAGESIZE), PAGESIZE, opcount);
+			//mem_write(base, MEM_PER_ITER);
 		}
 	}	
 

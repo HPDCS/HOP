@@ -81,7 +81,7 @@ static inline int handle_ibs_event(struct pt_regs *regs)
 	rdmsrl(MSR_IBS_OP_CTL, midx);
 #ifdef _NMI
 	if (!(midx & IBS_OP_VAL)) {
-//		dev->no_ibs++;
+		dev->no_ibs++;
 		goto out;
 	}
 #endif
@@ -114,6 +114,7 @@ static inline int handle_ibs_event(struct pt_regs *regs)
 	/* build canonical form pointer */
 	pt = (struct pt_info*)build_ptr(*kstack);
 
+	pt->samples++;
 
 	// dbuf = pt->dbuf;
 
@@ -149,7 +150,7 @@ static inline int handle_ibs_event(struct pt_regs *regs)
 
 		// rewrite from scratch
 		hash_add_or_increase(pt, (entry >> 12));
-		// pt->memory++;
+		pt->memory++;
 	}
 
 	/* get the time stamp counter (TSC) */

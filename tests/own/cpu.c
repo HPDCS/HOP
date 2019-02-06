@@ -94,9 +94,10 @@ unsigned long cycles;
 
 static void f_partition(int id, unsigned long tm)
 {
-    int ab = 5, bc = 7;
+    int ab = 5, bc = 7, i = 0;
     printf("%lu\n", tm);
-	while (--tm > 0) {
+	printf("Working on [%llx]\n", ((unsigned long long) &ab) >> 12);	
+    while (--tm > 0 && ++i) {
 	    // 5 times
 	    ab *= bc;
 	    bc *= bc;
@@ -104,7 +105,7 @@ static void f_partition(int id, unsigned long tm)
 	    ab *= bc;
 	    ab *= ab;
 	}
-    printf("b\n");
+    printf("b ? %u\n", i);
 }
 
 int lock = 0;

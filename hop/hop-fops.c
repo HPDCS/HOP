@@ -118,6 +118,7 @@ ssize_t hop_read(struct file *file, char __user *buf, size_t count, loff_t *ppos
 long hop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
 	long err = 0;
+	unsigned total = 0;
 	struct pt_info *pt = (struct pt_info *) file->private_data;
 	struct tid_stats stats = {.pages = 0};
 
@@ -136,19 +137,19 @@ long hop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 		stats.memory = pt->memory;
 		stats.samples = pt->samples;
 
-		stats.pages_length = thread_stats_page_access(pt->tid, &(stats.pages));
+		stats.pages_length = thread_stats_page_access(pt->tid, &(stats.pages), &total);
 
 		if (copy_to_user((struct tid_stats __user *)arg, &(stats), sizeof(struct tid_stats))) {
 			err = -EFAULT;
 		}
 		break;
 	case HOP_TID_PAGES:
-		stats.pages_length = thread_stats_page_access(pt->tid, &(stats.pages));
+		stats.pages_length = thread_stats_page_access(pt->tid, &(stats.pages), &total);
 		
-		pr_info("Ready to send %llu pages - address: %llx\n", stats.pages_length, stats.pages);
+		pr_info("Ready to send %llu pages (%u) - address: %llx\n", stats.pages_length, total, stats.pages);
 		
 	//	for (err = 0; err < stats.pages_length; ++err)
-			pr_info("[%llx]: %llu\n", stats.pages->page, stats.pages->counter);
+			pr_info("[%llx]: %llu\n", stats.pages->page, stats.pages->counter, &total);
 		
 		pr_info("Allocated memory: %u\n", sizeof(struct tid_page) * stats.pages_length);
 		pr_info("Ready to copy on %llx\n", arg);

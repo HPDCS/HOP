@@ -229,7 +229,7 @@ void cleanup_active_threads(void)
 /**
  * This method print the pages accessed by the specified pid
  */
-int thread_stats_page_access(pid_t tid, struct tid_page **pages)
+int thread_stats_page_access(pid_t tid, struct tid_page **pages, unsigned *total)
 {
 	int bkt;
 	// int err = 1;
@@ -255,6 +255,7 @@ int thread_stats_page_access(pid_t tid, struct tid_page **pages)
 
 					(*pages)[pos].page = pg->page;
 					(*pages)[pos].counter = pg->counter;
+					*total += pg->counter;
 					pos++;
 					// pr_info("[%llx] %llu\n", pages[pos-1].page, pages[pos-1].counter);
 				}

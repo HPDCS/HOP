@@ -1,1 +1,1 @@
-Test: ./hot-pages 1 1000
+Test: ./hot-pages 1 10000
